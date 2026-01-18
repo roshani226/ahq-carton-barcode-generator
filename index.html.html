@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AHQ - Carton Barcode Generator</title>
+
+  <style>
+    :root{
+      --bg1:#7c3aed;
+      --bg2:#06b6d4;
+      --bg3:#f97316;
+      --bg4:#22c55e;
+      --card:#ffffffcc;
+      --card2:#ffffffee;
+      --text:#0f172a;
+      --muted:#475569;
+      --shadow: 0 20px 60px rgba(0,0,0,.18);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      min-height:100vh;
+      background:
+        radial-gradient(1200px 600px at 10% 10%, rgba(255,255,255,.25), transparent 60%),
+        radial-gradient(900px 500px at 90% 15%, rgba(255,255,255,.18), transparent 60%),
+        linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3), var(--bg4));
+      background-size: cover;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 22px;
+    }
+
+    .app{
+      width:min(1100px, 100%);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      border: 1px solid rgba(255,255,255,.25);
+      background: rgba(255,255,255,.12);
+      backdrop-filter: blur(12px);
+    }
+
+    header{
+      padding: 22px 22px 18px;
+      display:flex;
+      gap: 14px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap: wrap;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.25), rgba(255,255,255,.10));
+      border-bottom: 1px solid rgba(255,255,255,.25);
+    }
+
+    .brand{
+      display:flex;
+      gap: 14px;
+      align-items:center;
+      min-width: 280px;
+    }
+
+    .logo{
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      background:
+        conic-gradient(from 30deg, #22c55e, #06b6d4, #f97316, #7c3aed, #22c55e);
+      box-shadow: 0 12px 25px rgba(0,0,0,.15);
+      border: 2px solid rgba(255,255,255,.55);
+    }
+
+    h1{
+      margin:0;
+      font-size: 22px;
+      letter-spacing: .2px;
+      color: #0b1220;
+      text-shadow: 0 1px 0 rgba(255,255,255,.4);
+    }
+
+    .subtitle{
+      margin: 3px 0 0;
+      font-size: 13px;
+      color: rgba(15,23,42,.75);
+    }
+
+    .chips{
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items:center;
+      justify-content:flex-end;
+    }
+
+    .chip{
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      color: rgba(15,23,42,.85);
+      background: rgba(255,255,255,.55);
+      border: 1px solid rgba(255,255,255,.65);
+      display:flex;
+      gap:8px;
+      align-items:center;
+      user-select:none;
+    }
+
+    .dot{
+      width:10px;height:10px;border-radius:999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 4px rgba(34,197,94,.18);
+    }
+
+    main{
+      display:grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 18px;
+      padding: 18px;
+    }
+
+    @media (max-width: 960px){
+      main{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,.55);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 28px rgba(0,0,0,.12);
+      overflow:hidden;
+    }
+
+    .cardInner{
+      background: var(--card2);
+      margin: 10px;
+      border-radius: calc(var(--radius) - 8px);
+      padding: 16px;
+      border: 1px solid rgba(2,6,23,.06);
+    }
+
+    .cardTitle{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .badge{
+      font-size: 12px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(124,58,237,.20), rgba(6,182,212,.20));
+      border: 1px solid rgba(124,58,237,.25);
+      color: rgba(2,6,23,.75);
+    }
+
+    label{
+      display:block;
+      font-size: 12px;
+      color: var(--muted);
+      margin: 10px 0 6px;
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 520px){
+      .row{ grid-template-columns: 1fr; }
+    }
+
+    input, select{
+      width:100%;
+      padding: 11px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(2,6,23,.12);
+      background: #fff;
+      outline: none;
+      font-size: 14px;
+      transition: .15s ease;
+    }
+
+    input:focus, select:focus{
+      border-color: rgba(124,58,237,.55);
+      box-shadow: 0 0 0 4px rgba(124,58,237,.18);
+    }
+
+    .actions{
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    button{
+      border:0;
+      border-radius: 14px;
+      padding: 11px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .06s ease, filter .15s ease, box-shadow .15s ease;
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      user-select:none;
+    }
+    button:active{ transform: translateY(1px); }
+
+    .btnPrimary{
+      color:white;
+      background: linear-gradient(90deg, #7c3aed, #06b6d4);
+      box-shadow: 0 10px 20px rgba(124,58,237,.25);
+    }
+    .btnPrimary:hover{ filter: brightness(1.03); }
+
+    .btnAccent{
+      color:white;
+      background: linear-gradient(90deg, #f97316, #22c55e);
+      box-shadow: 0 10px 20px rgba(249,115,22,.22);
+    }
+
+    .btnSoft{
+      background: rgba(255,255,255,.9);
+      border: 1px solid rgba(2,6,23,.10);
+      color: rgba(2,6,23,.85);
+    }
+
+    .icon{
+      width: 18px; height: 18px;
+      display:inline-block;
+    }
+
+    .mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border: 1px dashed rgba(2,6,23,.18);
+      background: rgba(255,255,255,.75);
+      color: #0b1220;
+      overflow:auto;
+    }
+
+    .previewWrap{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 14px;
+      border-radius: 16px;
+      background:
+        radial-gradient(500px 200px at 30% 20%, rgba(124,58,237,.18), transparent 60%),
+        radial-gradient(420px 160px at 85% 30%, rgba(6,182,212,.18), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.72));
+      border: 1px solid rgba(2,6,23,.10);
+      min-height: 220px;
+    }
+
+    .hint{
+      font-size: 12px;
+      color: rgba(15,23,42,.75);
+      margin-top: 10px;
+      line-height: 1.35;
+    }
+
+    .footerNote{
+      padding: 12px 18px 18px;
+      font-size: 12px;
+      color: rgba(255,255,255,.9);
+      text-align:center;
+      opacity: .95;
+    }
+
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      background: rgba(15,23,42,.92);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      box-shadow: 0 14px 30px rgba(0,0,0,.25);
+      display:none;
+      z-index: 50;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>AHQ- Carton Barcode Generator</h1>
+          <div class="subtitle">Transfers</div>
+        </div>
+      </div>
+
+      <div class="chips">
+        <div class="chip"><span class="dot"></span>Ready</div>
+        <div class="chip">Format: <b>CODE128</b></div>
+        <div class="chip">Pattern: <b>AHQ-YYYY-######</b></div>
+      </div>
+    </header>
+
+    <main>
+      <!-- LEFT: Builder -->
+      <section class="card">
+        <div class="cardInner">
+          <div class="cardTitle">
+            <div>
+              <div style="font-weight:900; font-size:16px;">Build your carton code</div>
+              <div style="font-size:12px; color: rgba(15,23,42,.72); margin-top:2px;">
+                Default pattern generates like: <b>AHQ-2026-000001</b>
+              </div>
+            </div>
+            <div class="badge">Fast & simple</div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label>Prefix</label>
+              <input id="prefix" value="AHQ" />
+            </div>
+            <div>
+              <label>Separator</label>
+              <select id="sep">
+                <option value="-" selected>-</option>
+                <option value="_">_</option>
+                <option value="/">/</option>
+                <option value="">(none)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label>Year (YYYY)</label>
+              <input id="year" type="number" />
+            </div>
+            <div>
+              <label>Sequence number</label>
+              <input id="seq" type="number" value="1" min="1" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label>Sequence digits (zero padding)</label>
+              <select id="pad">
+                <option value="4">4 (0001)</option>
+                <option value="5">5 (00001)</option>
+                <option value="6" selected>6 (000001)</option>
+                <option value="8">8 (00000001)</option>
+              </select>
+            </div>
+            <div>
+              <label>Optional carton type (adds middle part)</label>
+              <input id="type" placeholder="ex: C1 / BOX / FOOD (optional)" />
+            </div>
+          </div>
+
+          <label>Generated code</label>
+          <div class="mono" id="codeOut">—</div>
+
+          <div class="actions">
+            <button class="btnPrimary" id="btnBuild"><span class="icon">⚡</span> Build Code</button>
+            <button class="btnSoft" id="btnNext"><span class="icon">➕</span> Next +1</button>
+            <button class="btnAccent" id="btnGenerate"><span class="icon">🏷️</span> Generate Barcode</button>
+            <button class="btnSoft" id="btnDownload"><span class="icon">⬇️</span> Download PNG</button>
+            <button class="btnSoft" id="btnCopy"><span class="icon">📋</span> Copy Code</button>
+          </div>
+
+          <div class="hint">
+            Builder values always update the barcode. Manual input is only used if you type there.
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: Preview -->
+      <section class="card">
+        <div class="cardInner">
+          <div class="cardTitle">
+            <div style="font-weight:900; font-size:16px;">Barcode preview</div>
+            <div class="badge">Downloadable</div>
+          </div>
+
+          <div class="previewWrap">
+            <svg id="barcode" role="img" aria-label="barcode preview"></svg>
+          </div>
+
+          <label style="margin-top:12px;">Manual code (optional)</label>
+          <input id="manual" placeholder="Type/paste a code here (overrides builder only if you type)" />
+
+          <div class="hint">
+           
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div class="footerNote">
+      
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Done</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+
+  <script>
+    const toastEl = document.getElementById("toast");
+    function toast(msg){
+      toastEl.textContent = msg;
+      toastEl.style.display = "block";
+      clearTimeout(window.__t);
+      window.__t = setTimeout(()=> toastEl.style.display="none", 1400);
+    }
+
+    // default year
+    document.getElementById("year").value = new Date().getFullYear();
+
+    let manualTouched = false; // tracks whether user intentionally typed manual code
+
+    function padNumber(n, digits) {
+      const s = String(n);
+      return s.length >= digits ? s : "0".repeat(digits - s.length) + s;
+    }
+
+    function buildCode() {
+      const prefix = document.getElementById("prefix").value.trim();
+      const type   = document.getElementById("type").value.trim();
+      const year   = String(document.getElementById("year").value).trim();
+      const seq    = parseInt(document.getElementById("seq").value || "1", 10);
+      const pad    = parseInt(document.getElementById("pad").value, 10);
+      const sep    = document.getElementById("sep").value;
+
+      const seqPart = padNumber(seq, pad);
+
+      // If type exists: PREFIX-TYPE-YEAR-SEQ, else PREFIX-YEAR-SEQ
+      const parts = [];
+      if (prefix) parts.push(prefix);
+      if (type) parts.push(type);
+      if (year) parts.push(year);
+      parts.push(seqPart);
+
+      const code = parts.join(sep);
+      document.getElementById("codeOut").textContent = code;
+      return code;
+    }
+
+    function generateBarcode(code) {
+      if (!window.JsBarcode) {
+        alert("JsBarcode library not loaded. If you’re offline, tell me and I’ll provide an offline zip version.");
+        return;
+      }
+      try {
+        JsBarcode("#barcode", code, {
+          format: "CODE128",
+          width: 2,
+          height: 90,
+          displayValue: true,
+          margin: 10
+        });
+      } catch (e) {
+        alert("Barcode generation failed: " + e.message);
+      }
+    }
+
+    function downloadPngFromSvg(svgEl, filename) {
+      const svgData = new XMLSerializer().serializeToString(svgEl);
+      const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(svgBlob);
+
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        URL.revokeObjectURL(url);
+
+        canvas.toBlob((blob) => {
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = filename;
+          a.click();
+          setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        }, "image/png");
+      };
+      img.src = url;
+    }
+
+    // manual field tracking
+    const manualEl = document.getElementById("manual");
+    manualEl.addEventListener("input", () => {
+      manualTouched = manualEl.value.trim().length > 0;
+    });
+
+    // auto-sync builder -> codeOut + manual (ONLY when user hasn't typed manual)
+    function syncFromBuilder() {
+      const code = buildCode();
+      if (!manualTouched) manualEl.value = code;
+    }
+
+    ["prefix","type","year","seq","pad","sep"].forEach(id => {
+      const el = document.getElementById(id);
+      el.addEventListener("input", syncFromBuilder);
+      el.addEventListener("change", syncFromBuilder);
+    });
+
+    // buttons
+    document.getElementById("btnBuild").addEventListener("click", () => {
+      manualTouched = false;            // builder is now source of truth
+      const code = buildCode();
+      manualEl.value = code;
+      toast("Code built ✅");
+    });
+
+    document.getElementById("btnNext").addEventListener("click", () => {
+      const seqEl = document.getElementById("seq");
+      seqEl.value = String((parseInt(seqEl.value || "1", 10) || 1) + 1);
+      manualTouched = false;
+      const code = buildCode();
+      manualEl.value = code;
+      toast("Next code ✅");
+    });
+
+    // UPDATED: Generate Barcode uses builder unless user typed manual
+    document.getElementById("btnGenerate").addEventListener("click", () => {
+      const manual = manualEl.value.trim();
+      const code = manualTouched && manual ? manual : buildCode();
+
+      // keep display in sync
+      document.getElementById("codeOut").textContent = code;
+      if (!manualTouched) manualEl.value = code;
+
+      generateBarcode(code);
+      toast("Barcode generated 🏷️");
+    });
+
+    document.getElementById("btnDownload").addEventListener("click", () => {
+      const code = (manualTouched ? manualEl.value.trim() : document.getElementById("codeOut").textContent.trim());
+      if (!code || code === "—") return alert("No code to download.");
+      const svgEl = document.getElementById("barcode");
+      downloadPngFromSvg(svgEl, `AHQ-barcode-${code.replace(/[^a-z0-9]+/gi, "_")}.png`);
+      toast("Downloaded PNG ⬇️");
+    });
+
+    document.getElementById("btnCopy").addEventListener("click", async () => {
+      const code = (manualTouched ? manualEl.value.trim() : document.getElementById("codeOut").textContent.trim());
+      if (!code || code === "—") return alert("Nothing to copy.");
+      try {
+        await navigator.clipboard.writeText(code);
+        toast("Copied 📋");
+      } catch {
+        alert("Copy failed. Please select and copy manually.");
+      }
+    });
+
+    // first render
+    manualTouched = false;
+    const initialCode = buildCode();
+    manualEl.value = initialCode;
+    generateBarcode(initialCode);
+  </script>
+</body>
+</html>
